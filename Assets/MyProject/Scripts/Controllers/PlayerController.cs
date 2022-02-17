@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
@@ -8,9 +9,11 @@ public class PlayerController : MonoBehaviour
     public static PlayerController Instance;
 
     [SerializeField] float speed;
+
     [SerializeField] int health = 3;
 
     [SerializeField] int maxHealth = 3;
+    [SerializeField] float immuneTime = 3f;
 
     Camera cam;
     NavMeshAgent agent;
@@ -20,21 +23,10 @@ public class PlayerController : MonoBehaviour
 
     public UnityAction CrystalTakeAction;
 
-    public float Speed
-    {
-        get
-        {
-            return speed;
-        }
-        set
-        {
-            if (speed == value)
-                return;
+    private const string IsRun = "IsRun";
+    private RaycastHit[] hit = new RaycastHit[1];
 
-            speed = value;
-            agent.speed = speed;
-        }
-    }
+    bool immune = false;
 
     public int Health
     {
@@ -76,15 +68,36 @@ public class PlayerController : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
+            
 
-            if (Physics.Raycast(ray, out hit))
+            if (Physics.RaycastNonAlloc(ray, hit) > 0)
             {
-                agent.SetDestination(hit.point);
-                transform.LookAt(agent.destination);
+                agent.SetDestination(hit[0].point);
+                //transform.LookAt(agent.destination); //Вариант для быстрого поворота в сторону точки движения
             }
         }
-        animator.SetBool("IsRun", agent.remainingDistance > 0.2f);
+        //agent.velocity.magnitude > 0.02f
+        animator.SetBool(IsRun, Mathf.Abs(Vector3.Distance(agent.destination,transform.position)) > 0.2);
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.collider.tag == EnemyController.Tag)
+        {
+            print("Col with enemy");
+            if (!immune)
+            {
+                health--;
+                StartCoroutine(Immune());
+            }
+        }
+    }
+
+    IEnumerator Immune()
+    {
+        immune = true;
+        yield return new WaitForSeconds(immuneTime);
+        immune = false;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -92,8 +105,8 @@ public class PlayerController : MonoBehaviour
         if (other.tag == "Crystal")
         {
             Health++;
-            CrystalTakeAction?.Invoke();
-            Destroy(other.gameObject);
+            CrystalController.Instance.PickUp();
+            other.gameObject.SetActive(false);
         }
     }
 }
