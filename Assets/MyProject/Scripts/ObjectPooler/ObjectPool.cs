@@ -1,13 +1,12 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class ObjectPool : MonoBehaviour
+public class ObjectPool : BaseController<ObjectPool>
 {
-    public static ObjectPool Instance;
-
-    [System.Serializable]
+    [Serializable]
     public class Pool
     {
         public bool shouldExpand = true;
@@ -17,10 +16,8 @@ public class ObjectPool : MonoBehaviour
         public Transform container;
     }
 
-    private void Awake()
+    protected override void Initialization()
     {
-        Instance = this;
-
         poolDictionary = new Dictionary<string, List<GameObject>>();
 
         foreach (Pool pool in pools)
@@ -77,10 +74,6 @@ public class ObjectPool : MonoBehaviour
             objectToSpawn.transform.localScale = pools.Find(pool => pool.tag == tag).prefab.transform.localScale;
             IPooledObject pooledObj = objectToSpawn.GetComponent<IPooledObject>();
 
-            if (tag == "Enemy")
-            {
-                print("Enemy");
-            }    
             if (pooledObj != null)
             {
                 pooledObj.OnObjectSpawn();

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,18 +8,16 @@ public class Enemy : MonoBehaviour, IPooledObject
 {
     [SerializeField] float speed = 1.5f;
 
+    public Action<Collider> collided;
+
     NavMeshAgent agent;
 
     public void OnObjectSpawn()
     {
-        agent.Warp(transform.position);
-        agent.enabled = true;
-    }
-
-    private void Awake()
-    {
         agent = GetComponent<NavMeshAgent>();
         agent.speed = speed;
+        agent.Warp(transform.position);
+        agent.enabled = true;
     }
 
     void Update()
@@ -36,8 +35,7 @@ public class Enemy : MonoBehaviour, IPooledObject
     {
         if (other.tag == CrystalController.Tag)
         {
-            CrystalController.Instance.PickUp(true);
-            other.gameObject.SetActive(false);
+            collided?.Invoke(other);
         }
     }
 

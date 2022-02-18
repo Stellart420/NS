@@ -1,32 +1,31 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : BaseController<PlayerController>
 {
+    public const string Tag = "Player";
 
-    public static PlayerController Instance;
+    int health;
 
-    [SerializeField] float speed;
+    public Action<int, bool> OnHealthChange;
+    public Action<Collider> OnCollided;
 
-    [SerializeField] int health = 3;
-
-    [SerializeField] int maxHealth = 3;
-    [SerializeField] float immuneTime = 3f;
+    float immuneTime;
 
     Camera cam;
     NavMeshAgent agent;
     Animator animator;
-    public delegate void OnHealthChangeDelegate(float speed);
-    public event OnHealthChangeDelegate OnHealthChange;
-
-    public UnityAction CrystalTakeAction;
+    
 
     private const string IsRun = "IsRun";
     private RaycastHit[] hit = new RaycastHit[1];
 
     bool immune = false;
+    int maxHealth;
+
 
     public int Health
     {
@@ -39,27 +38,28 @@ public class PlayerController : MonoBehaviour
             if (health == value)
                 return;
 
+            bool immune = health > value;
             health = value >= maxHealth ? maxHealth : value;
-            OnHealthChange?.Invoke(health);
+            OnHealthChange?.Invoke(health, immune);
         }
     }
 
-    private void Awake()
+    protected override void Initialization()
     {
-        if (Instance)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
         cam = Camera.main;
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
-        agent.speed = speed;
+        maxHealth = GameData.PlayerMaxHealth;
+        immuneTime = GameData.ImmuneTime;
+        Health = maxHealth;
+        agent.speed = GameData.PlayerSpeed;
     }
 
     private void Update()
     {
+        if (GameController.Instance.State == GameState.Pause)
+            return;
+
         CheckInput();
     }
 
@@ -84,10 +84,9 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.collider.tag == EnemyController.Tag)
         {
-            print("Col with enemy");
             if (!immune)
             {
-                health--;
+                Health--;
                 StartCoroutine(Immune());
             }
         }
@@ -102,11 +101,10 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        OnCollided?.Invoke(other);
         if (other.tag == "Crystal")
         {
             Health++;
-            CrystalController.Instance.PickUp();
-            other.gameObject.SetActive(false);
         }
     }
 }

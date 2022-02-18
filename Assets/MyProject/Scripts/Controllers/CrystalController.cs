@@ -4,55 +4,47 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
 
-public class CrystalController : MonoBehaviour
+public class CrystalController : BaseController<CrystalController>
 {
-    public static CrystalController Instance;
 
     public const string Tag = "Crystal";
-    [SerializeField] Transform container;
-    [SerializeField] int startSpawnCount = 5;
+    
+    int initialSpawn;
 
-    //todo Переделать для гейм дизайнера
-    [SerializeField] float spawnDelayMin;
-    [SerializeField] float spawnDelayMax;
+    float spawnDelayMin;
+    float spawnDelayMax;
 
-    [SerializeField] int maxCrytal;
+    int maxCrytal;
 
     [SerializeField] SpawnMethod spawnMethod = SpawnMethod.Random;
 
-    int counter = 0;
-
     ObjectPool objectPooler;
 
-    public UnityAction PickUpAction;
+    List<Crystal> crystals = new List<Crystal>();
 
-    private void Awake()
-    {
-        if (Instance)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-
-
-    }
-
-    private void Start()
+    protected override void Initialization()
     {
         objectPooler = ObjectPool.Instance;
-        SpawnRandom(startSpawnCount);
+        maxCrytal = GameData.MaxCrystals;
+        spawnDelayMin = GameData.MinDelaySpawnCrystal;
+        spawnDelayMax = GameData.MaxDelaySpawnCrystal;
+        initialSpawn = GameData.InitialCrystals;
         StartCoroutine(SpawnCrystal());
-
     }
 
     IEnumerator SpawnCrystal()
     {
         WaitForSeconds wait = new WaitForSeconds(Random.Range(spawnDelayMin, spawnDelayMax));
 
+        while (GameController.Instance.State == GameState.Pause)
+            yield return wait;
+
+        SpawnRandom(initialSpawn);
+
         while (true)
         {
             yield return wait;
+            
             if (spawnMethod == SpawnMethod.Random)
             {
                 SpawnRandom();
@@ -64,7 +56,7 @@ public class CrystalController : MonoBehaviour
     {
         for (int i = 0; i < _count; i++)
         {
-            if (counter >= maxCrytal)
+            if (crystals.Count >= maxCrytal)
                 return;
 
             Vector3 spawnLocation = GameController.Instance.GetRandomGameBoardLocation();
@@ -73,21 +65,16 @@ public class CrystalController : MonoBehaviour
 
             if (NavMesh.SamplePosition(spawnLocation, out hit, 2f, 1))
             {
-                objectPooler.SpawnFromPool(Tag, hit.position + Vector3.up / 2, Quaternion.identity);
-
-                counter++;
+                var crystal = objectPooler.SpawnFromPool(Tag, hit.position + Vector3.up / 2, Quaternion.identity).GetComponent<Crystal>();
+                crystals.Add(crystal);
             }
         }
     }
 
-    public void PickUp(bool is_enemy = false)
+    public void PickUp(Crystal _crystal)
     {
-        counter--;
-
-        if (!is_enemy)
-        {
-            PickUpAction?.Invoke();
-        }
+        crystals.Remove(_crystal);
+        _crystal.PickUp();
     }
 }
 

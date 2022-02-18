@@ -1,39 +1,47 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using Random = UnityEngine.Random;
 
-public class GameController : MonoBehaviour
+public class GameController : BaseController<GameController>
 {
-    public static GameController Instance;
 
-    //todo В ОКНО ГЕЙМ-ДИЗАЙНЕРА
-    public int scoreAdded = 1;
+    private GameState state = GameState.Pause;
+
+    public GameState State => state;
 
     int score;
 
-    private void Awake()
+    int scoreAdded;
+
+    public Action<int> ChangeScore;
+    protected override void Initialization()
     {
-        if (Instance)
+        scoreAdded = GameData.CrystalAddedScore;
+        PlayerController.Instance.OnCollided += CheckCollidedPlayer;
+    }
+
+    void CheckCollidedPlayer(Collider col)
+    {
+        if (col.tag == CrystalController.Tag)
         {
-            Destroy(gameObject);
-            return;
+            var crystal = col.GetComponent<Crystal>();
+            CrystalController.Instance.PickUp(crystal);
+            AddScore(scoreAdded);
         }
-
-        Instance = this;
     }
 
-    private void Start()
+    public void Play()
     {
-        CrystalController.Instance.PickUpAction += () =>
-        {
-            AddScore(1);
-        };
+        state = GameState.Play;
     }
-
+        
     void AddScore(int _count)
     {
         score += _count;
+        ChangeScore?.Invoke(score);
     }
 
     //Получение рандомной точки на NavMesh
@@ -51,7 +59,7 @@ public class GameController : MonoBehaviour
         Vector3 firstVertexPosition = navMeshData.vertices[navMeshData.indices[firstVertexSelected]];
         Vector3 secondVertexPosition = navMeshData.vertices[navMeshData.indices[secondVertexSelected]];
 
-        
+
         if ((int)firstVertexPosition.x == (int)secondVertexPosition.x || (int)firstVertexPosition.z == (int)secondVertexPosition.z)
         {
             point = GetRandomGameBoardLocation(); //меня не устраивает эта рекурсия, могло быть и лучше 
@@ -62,5 +70,10 @@ public class GameController : MonoBehaviour
         }
 
         return point;
-    }
+    }   
+}
+public enum GameState
+{
+    Play,
+    Pause,
 }

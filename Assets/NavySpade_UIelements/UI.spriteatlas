@@ -23,7 +23,7 @@ SpriteAtlas:
     platformSettings:
     - serializedVersion: 3
       m_BuildTarget: DefaultTexturePlatform
-      m_MaxTextureSize: 512
+      m_MaxTextureSize: 2048
       m_ResizeAlgorithm: 0
       m_TextureFormat: -1
       m_TextureCompression: 1
@@ -35,7 +35,7 @@ SpriteAtlas:
       m_ForceMaximumCompressionQuality_BC6H_BC7: 0
     - serializedVersion: 3
       m_BuildTarget: Android
-      m_MaxTextureSize: 512
+      m_MaxTextureSize: 2048
       m_ResizeAlgorithm: 0
       m_TextureFormat: 47
       m_TextureCompression: 1
@@ -67,8 +67,24 @@ SpriteAtlas:
     isAtlasV2: 0
     cachedData: {fileID: 0}
   m_MasterAtlas: {fileID: 0}
-  m_PackedSprites: []
-  m_PackedSpriteNamesToIndex: []
+  m_PackedSprites:
+  - {fileID: 21300000, guid: 7419fd712f5b42f42aaf079e7f3ee88d, type: 3}
+  - {fileID: 21300000, guid: 8b15964261dc6e34cb121f6cadd39869, type: 3}
+  - {fileID: 21300000, guid: 8b0afc6239c6be54595306f33fb00f65, type: 3}
+  - {fileID: 21300000, guid: 6394a4671629a8d458c30551ae250013, type: 3}
+  - {fileID: 21300000, guid: b0f77b18b1c144646a305cc1b166d8eb, type: 3}
+  - {fileID: 21300000, guid: 07e3046ae426f7c4cae4af6da60f0ab9, type: 3}
+  - {fileID: 21300000, guid: 660e6f6eb52c04d4b8a75920a5d5ba55, type: 3}
+  - {fileID: 21300000, guid: b0ee01ee761f99341bddff7200e4b93b, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - currency_style4_gem32
+  - currency_style4_gem33
+  - btn_rectangle_green
+  - currency_style4_gem44
+  - currency_style4_skull
+  - currency_style4_gem43
+  - currency_style4_heart
+  - panel_frame_night
   m_RenderDataMap: {}
   m_Tag: UI
   m_IsVariant: 0
