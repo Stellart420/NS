@@ -11,7 +11,6 @@ public class Enemy : MonoBehaviour, IPooledObject
     public Action<Collider> collided;
 
     NavMeshAgent agent;
-
     public void OnObjectSpawn()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -37,6 +36,11 @@ public class Enemy : MonoBehaviour, IPooledObject
         {
             collided?.Invoke(other);
         }
+    }
+
+    public void CanMove(bool is_can)
+    {
+        agent.isStopped = is_can;
     }
 
 }

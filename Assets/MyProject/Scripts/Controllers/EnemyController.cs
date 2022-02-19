@@ -21,7 +21,6 @@ public class EnemyController : BaseController<EnemyController>
     ObjectPool objectPooler;
 
     public Action<int> EnemiesCount;
-
     public List<Transform> GetEnemiesTransform()
     {
         var _transforms = new List<Transform>();
@@ -34,7 +33,14 @@ public class EnemyController : BaseController<EnemyController>
         objectPooler = ObjectPool.Instance;
         spawnDelay = GameData.EnemySpawnDelay;
         maxEnemies = GameData.EnemyMax;
+        GameController.Instance.ChangeState += ChangeGameState;
         StartCoroutine(SpawnEnemy());
+    }
+
+    void ChangeGameState(GameState state)
+    {
+        bool can_move = state == GameState.Play;
+        enemies.ForEach(enemy => enemy.CanMove(can_move));
     }
 
     public void Reset()
