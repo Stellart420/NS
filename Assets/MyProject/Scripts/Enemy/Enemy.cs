@@ -20,7 +20,7 @@ public class Enemy : MonoBehaviour, IPooledObject
         agent.enabled = true;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if (!agent.pathPending && agent.remainingDistance < 0.5f)
             GotoNextPoint();

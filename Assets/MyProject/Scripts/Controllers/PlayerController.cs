@@ -78,7 +78,7 @@ public class PlayerController : BaseController<PlayerController>
     void Died()
     {
         //todo Анимация смерти
-        agent.SetDestination(transform.position);
+        agent.isStopped = true;
     }
 
     void CheckInput()
@@ -102,6 +102,8 @@ public class PlayerController : BaseController<PlayerController>
     {
         transform.position = startPosition;
         Health = maxHealth;
+        agent.SetDestination(startPosition);
+        agent.isStopped = false;
     }
 
     private void OnCollisionEnter(Collision collision)
