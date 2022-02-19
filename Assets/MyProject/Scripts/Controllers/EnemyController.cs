@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using Random = UnityEngine.Random;
 
 public class EnemyController : BaseController<EnemyController>
 {
@@ -16,53 +18,30 @@ public class EnemyController : BaseController<EnemyController>
 
     [SerializeField] List<Collider> spawnAreas = new List<Collider>();
 
-    Enemy closestEnemy;
-
-    PlayerController player;
     ObjectPool objectPooler;
+
+    public Action<int> EnemiesCount;
+
+    public List<Transform> GetEnemiesTransform()
+    {
+        var _transforms = new List<Transform>();
+        enemies.ForEach(enemy => _transforms.Add(enemy.transform));
+        return _transforms;
+    }
 
     protected override void Initialization()
     {
-        player = PlayerController.Instance;
         objectPooler = ObjectPool.Instance;
         spawnDelay = GameData.EnemySpawnDelay;
         maxEnemies = GameData.EnemyMax;
         StartCoroutine(SpawnEnemy());
     }
 
-    private void Update()
+    public void Reset()
     {
-        ChooseClosest();
-    }
-
-    private float ChooseClosest()
-    {
-        float closestDistance = float.MaxValue;
-
-        NavMeshPath path;
-
-        enemies.ForEach(enemy =>
-        {
-
-            path = new NavMeshPath();
-            if (NavMesh.CalculatePath(player.transform.position, enemy.transform.position, 1, path))
-            {
-                float distance = Vector3.Distance(player.transform.position, path.corners[0]);
-
-                for (int i = 1; i < path.corners.Length; i++)
-                {
-                    distance += Vector3.Distance(path.corners[i - 1], path.corners[i]);
-                }
-
-                if (distance < closestDistance)
-                {
-                    closestDistance = distance;
-                    closestEnemy = enemy;
-                }
-            }
-        });
-
-        return closestDistance;
+        enemies.ForEach(enemy => enemy.gameObject.SetActive(false));
+        enemies.Clear();
+        EnemiesCount?.Invoke(0);
     }
 
     IEnumerator SpawnEnemy()
@@ -73,7 +52,7 @@ public class EnemyController : BaseController<EnemyController>
         {
             yield return wait;
             
-            if (GameController.Instance.State == GameState.Pause)
+            if (GameController.Instance.State == GameState.Loose)
                 continue;
             
             if (spawnMethod == SpawnMethod.InArea)
@@ -110,6 +89,7 @@ public class EnemyController : BaseController<EnemyController>
                         CrystalController.Instance.PickUp(crystal);
                 };
                 enemies.Add(enemy);
+                EnemiesCount?.Invoke(enemies.Count);
             }
         }
     }

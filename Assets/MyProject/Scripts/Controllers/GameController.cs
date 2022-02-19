@@ -8,19 +8,75 @@ using Random = UnityEngine.Random;
 public class GameController : BaseController<GameController>
 {
 
-    private GameState state = GameState.Pause;
+    private GameState state = GameState.Loose;
 
-    public GameState State => state;
+    public GameState State
+    {
+        get
+        {
+            return state;
+        }
+        set
+        {
+            state = value;
+            ChangeState?.Invoke(state);
+        }
+    }
 
     int score;
 
+    public int Score => score;
     int scoreAdded;
 
+    float closestToEnemy;
+    public float ClosestToEnemy
+    {
+        get
+        {
+            return closestToEnemy;
+        }
+        set
+        {
+            closestToEnemy = value;
+            ClosestEnemy?.Invoke(closestToEnemy);
+        }
+    }
+
+    float closestToCrystal;
+
+    public float ClosestToCrystal
+    {
+        get
+        {
+            return closestToCrystal;
+        }
+        set
+        {
+            closestToCrystal = value;
+            ClosestCrystal?.Invoke(closestToCrystal);
+        }
+    }
+
     public Action<int> ChangeScore;
+    public Action<GameState> ChangeState;
+    public Action<float> ClosestEnemy;
+    public Action<float> ClosestCrystal;
+
+    CrystalController crystalController;
+    EnemyController enemyController;
+    PlayerController player;
     protected override void Initialization()
     {
         scoreAdded = GameData.CrystalAddedScore;
-        PlayerController.Instance.OnCollided += CheckCollidedPlayer;
+        player = PlayerController.Instance;
+        player.OnCollided += CheckCollidedPlayer;
+        crystalController = CrystalController.Instance;
+        enemyController = EnemyController.Instance;
+        player.OnHealthChange += (health, immune) =>
+        {
+            if (health <= 0)
+                Loose();
+        };
     }
 
     void CheckCollidedPlayer(Collider col)
@@ -28,20 +84,76 @@ public class GameController : BaseController<GameController>
         if (col.tag == CrystalController.Tag)
         {
             var crystal = col.GetComponent<Crystal>();
-            CrystalController.Instance.PickUp(crystal);
+            crystalController.PickUp(crystal);
             AddScore(scoreAdded);
         }
     }
 
     public void Play()
     {
-        state = GameState.Play;
+        State = GameState.Play;
     }
         
     void AddScore(int _count)
     {
         score += _count;
         ChangeScore?.Invoke(score);
+    }
+
+    private void Update()
+    {
+        if (state == GameState.Loose)
+            return;
+
+        ClosestToEnemy = ChooseClosest(enemyController.GetEnemiesTransform(), player.transform);
+        ClosestToCrystal = ChooseClosest(crystalController.GetCrystalTransform(), player.transform);
+    }
+
+    public void Reset()
+    {
+        player.Reset();
+        enemyController.Reset();
+        crystalController.Reset();
+        State = GameState.Play;
+        score = 0;
+        ChangeScore?.Invoke(score);
+    }
+
+    public void Loose()
+    {
+        State = GameState.Loose;
+    }
+
+    private float ChooseClosest(List<Transform> _objects, Transform _from)
+    {
+        float closestDistance = float.MaxValue;
+
+        NavMeshPath path;
+
+        if (_objects == null || _objects.Count == 0)
+            return 0;
+
+        _objects.ForEach(obj =>
+        {
+
+            path = new NavMeshPath();
+            if (NavMesh.CalculatePath(_from.position, obj.position, 1, path))
+            {
+                float distance = Vector3.Distance(_from.position, path.corners[0]);
+
+                for (int i = 1; i < path.corners.Length; i++)
+                {
+                    distance += Vector3.Distance(path.corners[i - 1], path.corners[i]);
+                }
+
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                }
+            }
+        });
+
+        return closestDistance;
     }
 
     //Получение рандомной точки на NavMesh
@@ -75,5 +187,5 @@ public class GameController : BaseController<GameController>
 public enum GameState
 {
     Play,
-    Pause,
+    Loose,
 }

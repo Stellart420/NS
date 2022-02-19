@@ -8,7 +8,7 @@ public class UIController : BaseController<UIController>
     public List<Screen> screens = new List<Screen>();
 
     Screen currentScreen = null;
-
+    GameController gameController;
     protected override void Initialization()
     {
         InitUI();
@@ -16,6 +16,7 @@ public class UIController : BaseController<UIController>
 
     private void InitUI()
     {
+        gameController = GameController.Instance;
         foreach (var window in screens)
         {
             if (window is StartScreen)
@@ -29,7 +30,18 @@ public class UIController : BaseController<UIController>
 
         var game_screen = Get<GameScreen>() as GameScreen;
         PlayerController.Instance.OnHealthChange += game_screen.SetHealth;
-        GameController.Instance.ChangeScore += game_screen.SetScore;
+        gameController.ChangeScore += game_screen.SetScore;
+        gameController.ClosestEnemy += game_screen.SetClosestEnemyDistance;
+        EnemyController.Instance.EnemiesCount += game_screen.SetEnemies;
+        CrystalController.Instance.CrystalCount += game_screen.SetCrystals;
+        gameController.ClosestCrystal += game_screen.SetClosestCrystalDistance;
+        gameController.ChangeState += (state) =>
+        {
+            if (state == GameState.Loose)
+            {
+                GameOverScreen();
+            }
+        };
     }
 
     public Screen Get<T>() where T : Screen => screens.OfType<T>().FirstOrDefault();
@@ -54,5 +66,10 @@ public class UIController : BaseController<UIController>
     {
         OpenScreen<GameScreen>();
         GameController.Instance.Play();
+    }
+
+    public void GameOverScreen()
+    {
+        OpenScreen<GameOverScreen>();
     }
 }

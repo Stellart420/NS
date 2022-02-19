@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,6 +9,11 @@ public class GameScreen : Screen
     [SerializeField] Text health;
     [SerializeField] Text score;
     [SerializeField] GameObject immune;
+    [SerializeField] Text enemyCount;
+    [SerializeField] Text closestEnemy;
+    [SerializeField] Text crystalCount;
+    [SerializeField] Text closestCrystal;
+
     public void SetScore(int _score)
     {
         score.text = $"{_score}";
@@ -30,13 +36,34 @@ public class GameScreen : Screen
     {
         immune.SetActive(false);
     }
+
+    public void SetClosestEnemyDistance(float _distance)
+    {
+        closestEnemy.text = $"{Math.Round(_distance,1)}";
+    }
+
+    public void SetClosestCrystalDistance(float _distance)
+    {
+        closestCrystal.text = $"{Math.Round(_distance, 1)}";
+    }
+
+    public void SetEnemies(int _count)
+    {
+        enemyCount.text = $"{_count}";
+    }
+
+    public void SetCrystals(int _count)
+    {
+        crystalCount.text = $"{_count}";
+    }
+
     protected override void SelfClose()
     {
-        
+        panel.alpha = 0;
     }
 
     protected override void SelfOpen()
     {
-        
+        panel.alpha = 1;
     }
 }

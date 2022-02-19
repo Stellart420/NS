@@ -27,6 +27,8 @@ public class PlayerController : BaseController<PlayerController>
     int maxHealth;
 
 
+    Vector3 startPosition;
+
     public int Health
     {
         get
@@ -38,6 +40,14 @@ public class PlayerController : BaseController<PlayerController>
             if (health == value)
                 return;
 
+
+            if (value == 0)
+            {
+                Died();
+                OnHealthChange?.Invoke(value, false);
+                return;
+            }
+
             bool immune = health > value;
             health = value >= maxHealth ? maxHealth : value;
             OnHealthChange?.Invoke(health, immune);
@@ -46,6 +56,8 @@ public class PlayerController : BaseController<PlayerController>
 
     protected override void Initialization()
     {
+        startPosition = transform.position;
+
         cam = Camera.main;
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
@@ -57,10 +69,16 @@ public class PlayerController : BaseController<PlayerController>
 
     private void Update()
     {
-        if (GameController.Instance.State == GameState.Pause)
+        if (GameController.Instance.State == GameState.Loose)
             return;
 
         CheckInput();
+    }
+
+    void Died()
+    {
+        //todo Анимация смерти
+        agent.SetDestination(transform.position);
     }
 
     void CheckInput()
@@ -78,6 +96,12 @@ public class PlayerController : BaseController<PlayerController>
         }
         //agent.velocity.magnitude > 0.02f
         animator.SetBool(IsRun, Mathf.Abs(Vector3.Distance(agent.destination,transform.position)) > 0.2);
+    }
+
+    public void Reset()
+    {
+        transform.position = startPosition;
+        Health = maxHealth;
     }
 
     private void OnCollisionEnter(Collision collision)

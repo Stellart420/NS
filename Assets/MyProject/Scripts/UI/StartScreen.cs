@@ -19,9 +19,11 @@ public class StartScreen : Screen
 
     protected override void SelfClose()
     {
+        panel.alpha = 0;
     }
 
     protected override void SelfOpen()
     {
+        panel.alpha = 1;
     }
 }

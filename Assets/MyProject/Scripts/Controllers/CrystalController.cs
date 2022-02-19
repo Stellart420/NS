@@ -1,8 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
+using Random = UnityEngine.Random;
 
 public class CrystalController : BaseController<CrystalController>
 {
@@ -22,6 +24,16 @@ public class CrystalController : BaseController<CrystalController>
 
     List<Crystal> crystals = new List<Crystal>();
 
+    public Action<int> CrystalCount;
+
+
+    public List<Transform> GetCrystalTransform()
+    {
+        var _transforms = new List<Transform>();
+        crystals.ForEach(crystal => _transforms.Add(crystal.transform));
+        return _transforms;
+    }
+
     protected override void Initialization()
     {
         objectPooler = ObjectPool.Instance;
@@ -36,7 +48,7 @@ public class CrystalController : BaseController<CrystalController>
     {
         WaitForSeconds wait = new WaitForSeconds(Random.Range(spawnDelayMin, spawnDelayMax));
 
-        while (GameController.Instance.State == GameState.Pause)
+        while (GameController.Instance.State == GameState.Loose)
             yield return wait;
 
         SpawnRandom(initialSpawn);
@@ -44,7 +56,10 @@ public class CrystalController : BaseController<CrystalController>
         while (true)
         {
             yield return wait;
-            
+
+            if (GameController.Instance.State == GameState.Loose)
+                continue;
+
             if (spawnMethod == SpawnMethod.Random)
             {
                 SpawnRandom();
@@ -67,6 +82,7 @@ public class CrystalController : BaseController<CrystalController>
             {
                 var crystal = objectPooler.SpawnFromPool(Tag, hit.position + Vector3.up / 2, Quaternion.identity).GetComponent<Crystal>();
                 crystals.Add(crystal);
+                CrystalCount?.Invoke(crystals.Count);
             }
         }
     }
@@ -75,6 +91,14 @@ public class CrystalController : BaseController<CrystalController>
     {
         crystals.Remove(_crystal);
         _crystal.PickUp();
+    }
+
+    public void Reset()
+    {
+        crystals.ForEach(crystal => crystal.gameObject.SetActive(false));
+        crystals.Clear();
+        SpawnRandom(initialSpawn);
+        CrystalCount?.Invoke(crystals.Count);
     }
 }
 

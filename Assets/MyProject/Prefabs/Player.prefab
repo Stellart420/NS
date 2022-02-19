@@ -2168,7 +2168,7 @@ GameObject:
   - component: {fileID: 4454339047039403402}
   - component: {fileID: 4454339047039403401}
   - component: {fileID: 4454339047039403405}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -2223,10 +2223,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73dd75d9d74d1af40a81e382366a8ee9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 0
-  health: 3
-  maxHealth: 3
-  immuneTime: 3
+  dontDestoy: 0
 --- !u!54 &4454339047039403402
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2253,10 +2250,10 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  m_Radius: 0.3
-  m_Height: 1.2
+  m_Radius: 0.35
+  m_Height: 1.1
   m_Direction: 1
-  m_Center: {x: -0.025, y: 0.4, z: 0.125}
+  m_Center: {x: -0.025, y: 0.49, z: 0.09}
 --- !u!195 &4454339047039403405
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -2267,7 +2264,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.375
-  m_Speed: 3
+  m_Speed: 2
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 360

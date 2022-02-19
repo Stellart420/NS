@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+
+[RequireComponent(typeof(CanvasGroup))]
 public abstract class Screen : MonoBehaviour
 {
     [SerializeField] protected bool immediately= false;
@@ -10,18 +12,21 @@ public abstract class Screen : MonoBehaviour
 
     public event Action<Screen> OpenAction = delegate { };
 
+    protected CanvasGroup panel;
     void Awake()
     {
         if (UIController.Instance.screens.Find((screen) => screen == this) == null)
             UIController.Instance.screens.Add(this);
+
+        panel = GetComponent<CanvasGroup>();
         Initialization();
     }
 
     public void Open()
     {
         IsOpen = true;
-        OpenAction?.Invoke(this);
         gameObject.SetActive(true);
+        OpenAction?.Invoke(this);
         SelfOpen();
 
     }
