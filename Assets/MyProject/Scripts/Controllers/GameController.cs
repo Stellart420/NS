@@ -111,12 +111,12 @@ public class GameController : BaseController<GameController>
 
     public void Reset()
     {
-        player.Reset();
         enemyController.Reset();
         crystalController.Reset();
         State = GameState.Play;
         score = 0;
         ChangeScore?.Invoke(score);
+        player.Reset();
     }
 
     public void Loose()
